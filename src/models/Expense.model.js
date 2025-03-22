@@ -1,30 +1,33 @@
 'use strict';
 
+const { DataTypes } = require('sequelize');
 const { sequelize } = require('../db.js');
 
 const Expense = sequelize.define(
   'Expense',
   {
     userId: {
-      type: sequelize.INTEGER,
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    title: {
+      type: DataTypes.STRING,
       allowNull: false,
     },
     spentAt: {
-      type: sequelize.DATE,
+      type: DataTypes.DATE,
       allowNull: false,
-      defaultValue: sequelize.NOW,
+      defaultValue: DataTypes.NOW,
     },
     amount: {
-      type: sequelize.INTEGER,
+      type: DataTypes.INTEGER,
       allowNull: false,
     },
     category: {
-      type: sequelize.STRING,
-      allowNull: false,
+      type: DataTypes.STRING,
     },
     note: {
-      type: sequelize.STRING,
-      allowNull: false,
+      type: DataTypes.STRING,
     },
   },
   { tableName: 'expenses', timestamps: false },

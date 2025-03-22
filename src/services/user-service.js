@@ -21,7 +21,7 @@ const getAllUsersService = async () => {
 };
 
 const getUserByIdService = async (id) => {
-  const user = await User.findByPk(id);
+  const user = await User.findByPk(+id);
 
   if (!user) {
     throw new Error('User not found');
@@ -33,9 +33,11 @@ const getUserByIdService = async (id) => {
 const updateUserService = async (id, updateUser) => {
   const user = await getUserByIdService(id);
 
-  await User.update(updateUser, { where: { id: user.id } });
+  await User.update(updateUser, {
+    where: { id: user.id },
+  });
 
-  const updatedUser = await getUserByIdService(user.id);
+  const updatedUser = await getUserByIdService(id);
 
   return updatedUser;
 };

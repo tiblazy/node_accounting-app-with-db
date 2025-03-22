@@ -1,62 +1,45 @@
-const {
-  createRequiredFields,
-  updateRequiredFields,
-} = require('../types/expense-type');
-const { validFields } = require('../utils/validFields');
+const { Sequelize } = require('sequelize');
+const { Expense } = require('../models/Expense.model');
 
-let storeExpenses = [];
-
-const createExpenseService = (expense) => {
-  const errors = validFields(expense, createRequiredFields);
-
-  if (errors.length > 0) {
-    throw new Error(errors);
-  }
-
-  const newExpense = {
-    id: storeExpenses.length + 1,
-    spentAt: new Date(),
+const createExpenseService = async (expense) => {
+  const newExpense = await Expense.create({
     ...expense,
-  };
-
-  storeExpenses.push(newExpense);
+    userId: +expense.userId,
+  });
 
   return newExpense;
 };
 
-const getAllExpensesService = (query) => {
+const getAllExpensesService = async (query) => {
   const { userId, categories, from, to } = query;
 
-  let expenses = storeExpenses;
+  const where = [];
 
   if (userId) {
-    expenses = expenses.filter((expense) => expense.userId === Number(userId));
+    where.push({ userId: +userId });
   }
 
   if (categories) {
-    const categoryArray = categories.split(',');
-
-    expenses = expenses.filter((expense) => {
-      return categoryArray.includes(expense.category);
-    });
+    where.push({ category: categories });
   }
 
-  if (from && to) {
-    const fromDate = new Date(from);
-    const toDate = new Date(to);
-
-    expenses = expenses.filter(
-      (expense) =>
-        new Date(expense.spentAt) >= fromDate &&
-        new Date(expense.spentAt) <= toDate,
-    );
+  if (from) {
+    where.push({ spentAt: { [Sequelize.Op.gte]: new Date(from) } });
   }
+
+  if (to) {
+    where.push({ spentAt: { [Sequelize.Op.lte]: new Date(to) } });
+  }
+
+  const expenses = await Expense.findAll({
+    where,
+  });
 
   return expenses;
 };
 
-const getExpenseByIdService = (id) => {
-  const expense = storeExpenses.find((item) => item.id === id);
+const getExpenseByIdService = async (id) => {
+  const expense = await Expense.findByPk(+id);
 
   if (!expense) {
     throw new Error('Expense not found');
@@ -65,33 +48,25 @@ const getExpenseByIdService = (id) => {
   return expense;
 };
 
-const updateExpenseService = (id, updateExpense) => {
-  const expense = getExpenseByIdService(id);
+const updateExpenseService = async (id, updateExpense) => {
+  const expense = await getExpenseByIdService(id);
 
-  const filterUpdateExpenseFields = updateRequiredFields.map(
-    (field) => Object.keys(field)[0],
-  );
-
-  Object.keys(updateExpense).forEach((field) => {
-    if (!filterUpdateExpenseFields.includes(field)) {
-      delete updateExpense[field];
-    }
+  await Expense.update(updateExpense, {
+    where: { id: expense.id },
   });
 
-  Object.assign(expense, updateExpense);
+  const updatedExpense = await getExpenseByIdService(id);
 
-  return expense;
+  return updatedExpense;
 };
 
-const deleteExpenseService = (id) => {
-  const expense = getExpenseByIdService(id);
+const deleteExpenseService = async (id) => {
+  const expense = await getExpenseByIdService(id);
 
-  storeExpenses = storeExpenses.filter((item) => item.id !== expense.id);
+  await Expense.destroy({ where: { id: expense.id } });
 };
 
-const resetExpensesService = () => {
-  storeExpenses = [];
-};
+const resetExpensesService = () => {};
 
 module.exports = {
   createExpenseService,

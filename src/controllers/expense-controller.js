@@ -7,13 +7,13 @@ const {
 } = require('../services/expense-services');
 const { getUserByIdService } = require('../services/user-service');
 
-const createExpenseController = (req, res) => {
+const createExpenseController = async (req, res) => {
   try {
     const expense = req.body;
 
-    getUserByIdService(Number(expense.userId));
+    await getUserByIdService(expense.userId);
 
-    const newExpense = createExpenseService(expense);
+    const newExpense = await createExpenseService(expense);
 
     res.status(201).json(newExpense);
   } catch (error) {
@@ -21,17 +21,25 @@ const createExpenseController = (req, res) => {
   }
 };
 
-const getAllExpensesController = (req, res) => {
-  const expenses = getAllExpensesService(req.query);
+const getAllExpensesController = async (req, res) => {
+  try {
+    const expenses = await getAllExpensesService(req.query);
 
-  return res.status(200).json(expenses);
+    return res.status(200).json(expenses);
+  } catch (error) {
+    if (error.message.includes('No expenses found')) {
+      return res.status(404).json({ issue: error.message });
+    }
+
+    res.status(400).json({ issue: error.message });
+  }
 };
 
-const getExpenseByIdController = (req, res) => {
+const getExpenseByIdController = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const expense = getExpenseByIdService(Number(id));
+    const expense = await getExpenseByIdService(Number(id));
 
     res.status(200).json(expense);
   } catch (error) {
@@ -43,12 +51,12 @@ const getExpenseByIdController = (req, res) => {
   }
 };
 
-const updateExpenseController = (req, res) => {
+const updateExpenseController = async (req, res) => {
   const { id } = req.params;
   const expense = req.body;
 
   try {
-    const updatedExpense = updateExpenseService(Number(id), expense);
+    const updatedExpense = await updateExpenseService(Number(id), expense);
 
     res.status(200).json(updatedExpense);
   } catch (error) {
@@ -60,11 +68,11 @@ const updateExpenseController = (req, res) => {
   }
 };
 
-const deleteExpenseController = (req, res) => {
+const deleteExpenseController = async (req, res) => {
   const { id } = req.params;
 
   try {
-    deleteExpenseService(Number(id));
+    await deleteExpenseService(Number(id));
 
     res.status(204).send();
   } catch (error) {
