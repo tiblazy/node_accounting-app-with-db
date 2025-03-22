@@ -3,11 +3,10 @@ const { sequelize } = require('../db.js');
 
 async function syncDatabase() {
   try {
-    await sequelize.sync({ force: true });
+    await sequelize.sync();
     console.log('Database synchronized successfully');
   } catch (error) {
-    console.error('Error synchronizing database:', error);
-  } finally {
+    console.error('Error synchronizing database:');
     await sequelize.close();
   }
 }

@@ -1,29 +1,27 @@
 const { requiredFields } = require('../types/user-type');
 const { validFields } = require('../utils/validFields');
+const { User } = require('../models/User.model');
 
-let storeUsers = [];
-
-const createUserService = (user) => {
+const createUserService = async (user) => {
   const errors = validFields(user, requiredFields);
 
   if (errors.length > 0) {
     throw new Error(errors.join(', '));
   }
 
-  const newUser = {
-    id: storeUsers.length + 1,
-    ...user,
-  };
-
-  storeUsers.push(newUser);
+  const newUser = await User.create(user);
 
   return newUser;
 };
 
-const getAllUsersService = () => storeUsers;
+const getAllUsersService = async () => {
+  const users = await User.findAll();
 
-const getUserByIdService = (id) => {
-  const user = storeUsers.find((item) => item.id === id);
+  return users;
+};
+
+const getUserByIdService = async (id) => {
+  const user = await User.findByPk(id);
 
   if (!user) {
     throw new Error('User not found');
@@ -32,39 +30,23 @@ const getUserByIdService = (id) => {
   return user;
 };
 
-const updateUserService = (id, updateUser) => {
-  const user = getUserByIdService(id);
+const updateUserService = async (id, updateUser) => {
+  const user = await getUserByIdService(id);
 
-  const filterUpdateUserFields = requiredFields.map(
-    (field) => Object.keys(field)[0],
-  );
+  await User.update(updateUser, { where: { id: user.id } });
 
-  Object.keys(updateUser).forEach((field) => {
-    if (!filterUpdateUserFields.includes(field)) {
-      delete updateUser[field];
-    }
-  });
+  const updatedUser = await getUserByIdService(user.id);
 
-  const errors = validFields(updateUser, requiredFields);
-
-  if (errors.length > 0) {
-    throw new Error(errors.join(', '));
-  }
-
-  Object.assign(user, updateUser);
-
-  return user;
+  return updatedUser;
 };
 
-const deleteUserService = (id) => {
-  const user = getUserByIdService(id);
+const deleteUserService = async (id) => {
+  const user = await getUserByIdService(id);
 
-  storeUsers = storeUsers.filter((item) => item.id !== user.id);
+  await User.destroy({ where: { id: user.id } });
 };
 
-const resetUsersService = () => {
-  storeUsers = [];
-};
+const resetUsersService = () => {};
 
 module.exports = {
   createUserService,
@@ -75,5 +57,4 @@ module.exports = {
   deleteUserService,
 
   resetUsersService,
-  storeUsers,
 };

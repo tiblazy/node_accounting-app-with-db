@@ -6,10 +6,10 @@ const {
   getAllUsersService,
 } = require('../services/user-service');
 
-const createUserController = (req, res) => {
+const createUserController = async (req, res) => {
   try {
     const user = req.body;
-    const newUser = createUserService(user);
+    const newUser = await createUserService(user);
 
     res.status(201).json(newUser);
   } catch (error) {
@@ -17,15 +17,15 @@ const createUserController = (req, res) => {
   }
 };
 
-const getAllUsersController = (req, res) => {
-  return res.status(200).json(getAllUsersService());
+const getAllUsersController = async (req, res) => {
+  return res.status(200).json(await getAllUsersService());
 };
 
-const getUserByIdController = (req, res) => {
+const getUserByIdController = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const user = getUserByIdService(Number(id));
+    const user = await getUserByIdService(Number(id));
 
     res.status(200).json(user);
   } catch (error) {
@@ -37,12 +37,12 @@ const getUserByIdController = (req, res) => {
   }
 };
 
-const updateUserController = (req, res) => {
+const updateUserController = async (req, res) => {
   const { id } = req.params;
   const user = req.body;
 
   try {
-    const updatedUser = updateUserService(Number(id), user);
+    const updatedUser = await updateUserService(Number(id), user);
 
     res.status(200).json(updatedUser);
   } catch (error) {
@@ -54,11 +54,11 @@ const updateUserController = (req, res) => {
   }
 };
 
-const deleteUserController = (req, res) => {
+const deleteUserController = async (req, res) => {
   const { id } = req.params;
 
   try {
-    deleteUserService(Number(id));
+    await deleteUserService(Number(id));
 
     res.status(204).end();
   } catch (error) {
